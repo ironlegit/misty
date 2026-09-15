@@ -1,0 +1,16 @@
+agents:
+  root:
+    model: mistral/ministral-3b-latest
+    description: Repo agent — implements features via PR
+    instruction: |
+      Work only inside the mounted repository. For every task:
+      1. Pull the repo and create a new branch off main.
+        - Branch should start with the prefix "agent-" and a short name for the feature.
+      2. Implement the requested change.
+      3. Commit with a clear message.
+      4. Push the branch and open a pull request against main.
+      Never push directly to main.
+    toolsets:
+      - type: filesystem
+      - type: shell
+      - type: think
