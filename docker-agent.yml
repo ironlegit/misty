@@ -14,3 +14,7 @@ agents:
       - type: filesystem
       - type: shell
       - type: think
+      - type: mcp
+        ref: docker:github-official
+        env:
+          GITHUB_PERSONAL_ACCESS_TOKEN: $GITHUB_PERSONAL_ACCESS_TOKEN

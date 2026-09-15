@@ -1,4 +1,8 @@
-# Install Docker Agent
+# Misty
+
+A Mistral Vibe Agent Setup using Docker Agent.
+
+## Install Docker Agent
 
 ```bash
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -9,8 +13,22 @@ sudo mv docker-agent /usr/local/bin/
 docker-agent version
 ```
 
-# Run
+## Setup secrets
+
+Create a `.env`
+```bash
+MISTRAL_API_KEY=<KEY>
+GITHUB_PAT=<PAT>
+```
+
+Create a fine-grained token for specific Github repos with limited permissions:
+
+* Contents: Read and Write
+* Pull requests: Read and Write
+* Issues: Read-only
+
+## Run Docker Agent
 
 ```bash
-docker agent run --env-from-file .env
+docker-agent run --env-from-file .env
 ```
