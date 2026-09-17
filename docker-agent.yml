@@ -27,5 +27,6 @@ agents:
       - type: think
       - type: mcp
         ref: docker:github-official
+        defer: true # load on demand
         env:
           GITHUB_PERSONAL_ACCESS_TOKEN: $GITHUB_PERSONAL_ACCESS_TOKEN
