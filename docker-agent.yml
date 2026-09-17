@@ -10,17 +10,7 @@ agents:
       3. Commit with a clear message.
       4. Push the branch and open a pull request against main.
       Never push directly to main.
-    permissions:
-      deny: # even with --yolo flag
-        - "shell:cmd=git push*--force*"
-        - "shell:cmd=git push*:main"
-        - "shell:cmd=git clean -fd*"
-        - "shell:cmd=rm *"
-        - "shell:cmd=sudo*"
-        - "shell:cmd=chmod *"
-        - "shell:cmd=sh *"
-        - "shell:cmd=bash *"
-        - "shell:cmd=zsh *"
+
     toolsets:
       - type: filesystem
       - type: shell
@@ -30,3 +20,19 @@ agents:
         defer: true # load on demand
         env:
           GITHUB_PERSONAL_ACCESS_TOKEN: $GITHUB_PERSONAL_ACCESS_TOKEN
+
+permissions:
+  deny: # even with --yolo flag
+    - "shell:cmd=rm*"
+    - "shell:cmd=sudo*"
+    - "shell:cmd=mv*"
+    - "shell:cmd=chmod*"
+    - "shell:cmd=chown*"
+    - "shell:cmd=sh *"
+    - "shell:cmd=bash *"
+    - "shell:cmd=zsh *"
+    - "shell:cmd=git push*--force*"
+    - "shell:cmd=git push*:main"
+    - "shell:cmd=git clean -fd*"
+    - "github_delete_*"
+    - "github_close_*"
