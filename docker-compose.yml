@@ -1,0 +1,35 @@
+services:
+  # Forward proxy: the ONLY thing standing between the agent and the internet.
+  # Domain allow-listing lives in squid.conf.
+  proxy:
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+    networks: [egress, internet] # bridges the isolated agent network to the real one
+
+  agent:
+    build: .
+    # gVisor: extra syscall-interception layer around this container
+    runtime: "runsc"
+    user: "1000:1000" # non-root inside the container
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace:rw # only mount a target repo
+    env_file: .env
+    environment:
+      HTTPS_PROXY: http://proxy:3128 # force all HTTPS traffic through squid
+      HTTP_PROXY: http://proxy:3128
+      NO_PROXY: localhost,127.0.0.1
+    mem_limit: 4g # hard memory cap
+    cpus: "4.0" # hard CPU cap
+    read_only: true # root filesystem is immutable
+    tmpfs: [/tmp] # except a scratch dir, wiped on restart
+    networks: [egress] # this network has NO direct route to the internet
+    command: ["run", docker-agent.yml"] # Add --yolo?
+    depends_on: [proxy]
+
+networks:
+  egress:
+    internal: true # no external route at all — only reachable via proxy container
+  internet:
+    driver: bridge # proxy's actual route out
