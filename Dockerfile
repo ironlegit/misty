@@ -10,7 +10,11 @@ RUN curl -fsSL "https://github.com/docker/docker-agent/releases/download/${DOCKE
   -o /usr/local/bin/docker-agent \
   && chmod +x /usr/local/bin/docker-agent
 
+# Create necessary folders for agent user
 RUN useradd --create-home --uid 1000 agent
+RUN mkdir -p /home/agent/.cagent /home/agent/.config \
+  && chown -R agent:agent /home/agent
 USER agent
 WORKDIR /workspace
+
 ENTRYPOINT ["docker-agent"]
