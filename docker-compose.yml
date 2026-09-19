@@ -5,7 +5,10 @@ services:
     image: ubuntu/squid:latest
     volumes:
       - ./squid.conf:/etc/squid/squid.conf:ro
-    networks: [egress, internet] # bridges the isolated agent network to the real one
+    networks: # bridges the isolated agent network to the real one
+      egress:
+        ipv4_address: 172.28.1.2 # static — sidesteps DNS entirely
+      internet: {}
 
   agent:
     build: .
@@ -18,8 +21,8 @@ services:
       - agent-state:/home/agent/.cagent
     env_file: .env
     environment:
-      HTTPS_PROXY: http://proxy:3128 # force all HTTPS traffic through squid
-      HTTP_PROXY: http://proxy:3128
+      HTTPS_PROXY: http://172.28.1.2:3128 # force all HTTPS traffic through squid
+      HTTP_PROXY: http://172.28.1.2:3128
       NO_PROXY: localhost,127.0.0.1
     mem_limit: 4g # hard memory cap
     cpus: "4.0" # hard CPU cap
@@ -32,6 +35,9 @@ services:
 networks:
   egress:
     internal: true # no external route at all — only reachable via proxy container
+    ipam:
+      config:
+        - subnet: 172.28.1.0/24
   internet:
     driver: bridge # proxy's actual route out
 
