@@ -36,3 +36,11 @@ permissions:
     - "shell:cmd=git clean -fd*"
     - "github_delete_*"
     - "github_close_*"
+  allow:
+    - "shell:cmd=ls*"
+    - "shell:cmd=cat*"
+    - "shell:cmd=grep*"
+    - "shell:cmd=find*"
+    - "shell:cmd=head*"
+    - "shell:cmd=tail*"
+    - "shell:cmd=wc*"
