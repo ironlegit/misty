@@ -17,6 +17,7 @@ services:
     working_dir: /workspace
     volumes:
       - ${REPO_PATH}:/workspace:rw
+      - ./docker-agent.yml:/app/docker-agent.yml:ro
       - agent-config:/home/agent/.config
       - agent-state:/home/agent/.cagent
     env_file: .env
@@ -29,7 +30,7 @@ services:
     read_only: true # root filesystem is immutable
     tmpfs: [/tmp] # except a scratch dir, wiped on restart
     networks: [egress] # this network has NO direct route to the internet
-    command: ["run", "docker-agent.yml"] # Add --yolo?
+    command: ["run", "/app/docker-agent.yml"] # Add --yolo?
     depends_on: [proxy]
 
 networks:
