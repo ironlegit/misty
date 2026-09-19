@@ -1,17 +1,17 @@
 # Misty
 
-A Mistral Vibe Agent Setup using Docker Agent.
+A containerized [Docker Agent](https://github.com/docker/docker-agent) setup for running an autonomous coding agent against a Git repository, powered by the Mistral API. It's built to run safely inside a VM without requiring nested virtualization. Isolation comes from gVisor and an egress-restricted forward proxy instead of a hardware-virtualized sandbox.
 
-# Architecture
+## Architecture
 
 ```mermaid
 graph TB
-    subgraph WIN["Host"]
-        subgraph VM["VMware Workstation Pro"]
+    subgraph HOST["Host OS"]
+        subgraph VM["Guest VM (VMware Workstation)"]
             REPO[("repo-x<br/>bind-mounted")]
 
             subgraph STACK["Docker Compose stack"]
-                AGENT["<b>agent</b> container<br/>🔒 gVisor (runsc) sandbox<br/><br/>docker-agent · git · shell<br/>non-root · read-only fs<br/>cpu/mem limits"]
+                AGENT["<b>agent</b> container<br/>gVisor (runsc) sandbox<br/><br/>docker-agent · git · shell<br/>non-root · read-only fs<br/>cpu/mem limits"]
                 PROXY["<b>proxy</b> container<br/>squid forward proxy<br/><br/>allow-list:<br/>*.mistral.ai, github.com"]
             end
 
@@ -30,61 +30,74 @@ graph TB
     style MISTRAL fill:#fff,stroke:#666
 ```
 
+The agent has no direct route to the internet — the `egress` network is internal-only, so every outbound request is forced through `proxy`, which only allows traffic to Mistral and GitHub.
+
 ## Prerequisites
 
 - Mistral API key
-- Github PAT
-- Docker Buildx
-- Setup gVisor
+- GitHub personal access token (see [GitHub token](#github-token))
+- Docker with Buildx
+- gVisor, installed and configured for Docker:
   1. [Install gVisor](https://gvisor.dev/docs/user_guide/install/)
-  2. [Configure Docker](https://gvisor.dev/docs/user_guide/quick_start/docker/)
+  2. [Configure the Docker runtime](https://gvisor.dev/docs/user_guide/quick_start/docker/)
 
-## Setup secrets
+## Setup
 
-Create a `.env`
+### Secrets
+
+Create a `.env` file in the project root:
 
 ```bash
-# API Keys
-MISTRAL_API_KEY=<KEY>
-GITHUB_PERSONAL_ACCESS_TOKEN=<PAT>
-# Docker agent stuff
+# API keys
+MISTRAL_API_KEY=<key>
+GITHUB_PERSONAL_ACCESS_TOKEN=<pat>
+
+# Target repository (absolute path on the host)
+REPO_PATH=/absolute/path/to/target-repo
+
+# Docker Agent
 TELEMETRY_ENABLED=false
-# Git config to differentiate commits
+
+# Git identity, so agent commits are distinguishable from your own
 GIT_AUTHOR_NAME=misty[bot]
 GIT_AUTHOR_EMAIL=misty-bot@users.noreply.github.com
 GIT_COMMITTER_NAME=misty[bot]
 GIT_COMMITTER_EMAIL=misty-bot@users.noreply.github.com
-
 ```
 
-Create a fine-grained token for specific Github repos with limited permissions:
+### GitHub token
 
-- Contents: Read and Write
-- Pull requests: Read and Write
-- Issues: Read-only
+Create a fine-grained personal access token, scoped to the specific repositories this agent should touch:
 
-## Prepare target repo
+| Permission | Access |
+| --- | --- |
+| Contents | Read and write |
+| Pull requests | Read and write |
+| Issues | Read-only |
 
-- Make sure repo is clean and has no uncommited changes to avoid git mess.
-- Make sure the remote URL includes the PAT and is set to HTTPS.
-  - It should look like this:
-```bash
-git remote set-url origin "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/<user>/<repo>.git"
-``` 
+### Target repository
 
-## Run Docker Agent
+Before running the agent:
 
-Start agent:
+1. Make sure the repo is clean, with no uncommitted changes — the agent works directly against your checked-out working copy, not a snapshot.
+2. Point the remote at HTTPS with the token embedded, so the agent can push without an interactive credential prompt:
+
+   ```bash
+   git remote set-url origin "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/<user>/<repo>.git"
+   ```
+
+## Usage
+
+Start the agent (opens the interactive dashboard):
 
 ```bash
 docker compose run --rm agent run
 ```
 
-Restart:
+Rebuild and reset (clears session state and the first-run marker):
 
 ```bash
 docker compose down -v
 docker compose build agent
 docker compose run --rm agent run
 ```
-
