@@ -16,7 +16,7 @@ services:
     user: "1000:1000" # non-root inside the container
     working_dir: /workspace
     volumes:
-      - ./:/workspace:rw
+      - ${REPO_PATH}:/workspace:rw
       - agent-config:/home/agent/.config
       - agent-state:/home/agent/.cagent
     env_file: .env
