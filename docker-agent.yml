@@ -1,6 +1,6 @@
 agents:
   root:
-    model: mistral/ministral-3b-latest
+    model: mistral/mistral-small-latest
     description: Repo agent — implements features via PR
     instruction: |
       Work only inside the mounted repository. For every task:
