@@ -11,6 +11,22 @@ agents:
       4. Push the branch and open a pull request against main.
       Never push directly to main.
 
+      Dependency policy:
+      - NEVER install dependencies. Do not run npm install, npm ci, npx, yarn,
+        pnpm, pip install, poetry install, uv sync, or any equivalent command
+        for any language or package manager.
+      - Do not run builds, dev servers, or tests that require installed
+        dependencies (node_modules, .venv, site-packages, etc.) to exist.
+      - Instead, declare dependencies in the project's manifest files
+        (package.json, requirements.txt, pyproject.toml, etc.) exactly as the
+        target ecosystem expects, and write the source code against them.
+      - In the pull request description, include a "How to verify" section
+        stating the exact commands a human must run to install and verify
+        the change (e.g. npm ci && npm run build).
+      - If a task cannot be completed without executing an install or build
+        step, stop, commit what is complete, and state in the PR description
+        exactly which step is blocked and why.
+
     toolsets:
       - type: filesystem
       - type: shell
@@ -36,6 +52,17 @@ permissions:
     - "shell:cmd=git clean -fd*"
     - "github_delete_*"
     - "github_close_*"
+    # Dependency installation is forbidden
+    - "shell:cmd=npm install*"
+    - "shell:cmd=npm i *"
+    - "shell:cmd=npm ci*"
+    - "shell:cmd=npx*"
+    - "shell:cmd=yarn *"
+    - "shell:cmd=pnpm *"
+    - "shell:cmd=pip install*"
+    - "shell:cmd=pip3 install*"
+    - "shell:cmd=poetry *"
+    - "shell:cmd=uv *"
   allow:
     - "shell:cmd=ls*"
     - "shell:cmd=cat*"
