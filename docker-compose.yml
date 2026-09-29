@@ -18,6 +18,7 @@ services:
     volumes:
       - ${REPO_PATH}:/workspace:rw
       - ./docker-agent.yml:/app/docker-agent.yml:ro
+      - ./hooks:/app/hooks:ro
       - agent-config:/home/agent/.config
       - agent-state:/home/agent/.cagent
     env_file: .env
