@@ -1,31 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/docker/docker-agent/main/agent-schema.json
+version: "15"
+
 agents:
   root:
-    model: mistral/mistral-small-latest
+    model: mistral/mistral-medium-latest
     description: Repo agent — implements features via PR
     instruction: |
-      Work only inside the mounted repository. For every task:
-      1. Pull the repo and create a new branch off main.
-        - Branch should start with the prefix "agent-" and a short name for the feature.
-      2. Implement the requested change.
-      3. Commit with a clear message.
-      4. Push the branch and open a pull request against main.
-      Never push directly to main.
+      Work only inside the mounted repository.
+
+      Workflow for every task:
+        1. git checkout main && git pull, then git checkout -b agent/<short-feature-name>.
+           (Enforced: writes and non-git shell commands are refused until you're off
+           main — if a call fails for this reason, branch first and retry.)
+        2. Implement the requested change.
+        3. Commit with a clear message.
+        4. Push the branch and open a pull request against main. Never push to main directly.
 
       Dependency policy:
-      - NEVER install dependencies. Do not run npm install, npm ci, npx, yarn,
-        pnpm, pip install, poetry install, uv sync, or any equivalent command
-        for any language or package manager.
-      - Do not run builds, dev servers, or tests that require installed
-        dependencies (node_modules, .venv, site-packages, etc.) to exist.
-      - Instead, declare dependencies in the project's manifest files
-        (package.json, requirements.txt, pyproject.toml, etc.) exactly as the
-        target ecosystem expects, and write the source code against them.
-      - In the pull request description, include a "How to verify" section
-        stating the exact commands a human must run to install and verify
-        the change (e.g. npm ci && npm run build).
-      - If a task cannot be completed without executing an install or build
-        step, stop, commit what is complete, and state in the PR description
-        exactly which step is blocked and why.
+      - Do not install dependencies, or run builds/tests that require them.
+        (Enforced: install invocations are refused regardless of how they're phrased.)
+      - Instead, declare dependencies in the project's manifest files exactly as the
+        target ecosystem expects, and write source code against them.
+      - In the PR description, include a "How to verify" section stating the exact
+        commands a human must run to install and verify the change.
+      - If a task cannot be completed without an install or build step, stop, commit
+        what is complete, and state in the PR description exactly which step is
+        blocked and why.
 
     toolsets:
       - type: filesystem
@@ -33,12 +33,21 @@ agents:
       - type: think
       - type: mcp
         ref: docker:github-official
-        defer: true # load on demand
+        defer: true
         env:
           GITHUB_PERSONAL_ACCESS_TOKEN: $GITHUB_PERSONAL_ACCESS_TOKEN
 
+    hooks:
+      pre_tool_use:
+        - matcher: "shell|edit_file|write_file|create_directory"
+          preempt_yolo: true
+          hooks:
+            - type: command
+              command: "/app/hooks/enforce-policy.sh"
+              timeout: 10
+
 permissions:
-  deny: # even with --yolo flag
+  deny:
     - "shell:cmd=rm*"
     - "shell:cmd=sudo*"
     - "shell:cmd=mv*"
@@ -52,7 +61,6 @@ permissions:
     - "shell:cmd=git clean -fd*"
     - "github_delete_*"
     - "github_close_*"
-    # Dependency installation is forbidden
     - "shell:cmd=npm install*"
     - "shell:cmd=npm i *"
     - "shell:cmd=npm ci*"
@@ -71,3 +79,6 @@ permissions:
     - "shell:cmd=head*"
     - "shell:cmd=tail*"
     - "shell:cmd=wc*"
+    - "write_file:path=/workspace/*"
+    - "edit_file:path=/workspace/*"
+    - "create_directory:path=/workspace/*"
