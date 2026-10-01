@@ -80,6 +80,26 @@ Before running the agent:
    git remote set-url origin "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/<user>/<repo>.git"
    ```
 
+## Testing
+
+Test preempt hook:
+
+```bash
+docker compose build --no-cache agent
+docker compose run --rm --entrypoint bash agent -c '
+  echo "--- toolchain ---"; git --version; jq --version
+  echo "--- hook: pip install while on main ---"
+  echo "{\"tool_name\":\"shell\",\"tool_input\":{\"cmd\":\"pip install requests\"}}" | /app/hooks/enforce-policy.sh
+  echo "exit: $?"
+'
+```
+
+Check for stale content:
+
+```bash
+docker compose run --rm --entrypoint cat agent /app/docker-agent.yml
+```
+
 ## Usage
 
 Start the agent (opens the interactive dashboard):
