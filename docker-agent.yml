@@ -52,11 +52,12 @@ agents:
     hooks:
       pre_tool_use:
         - matcher: "shell|edit_file|write_file|create_directory"
-          preempt_yolo: true
+          preempt_yolo: true # runs before deny/allow/ask, and before --yolo
           hooks:
             - type: command
               command: "/app/hooks/enforce-policy.sh"
               timeout: 10
+              on_error: block
 
 permissions:
   deny:
