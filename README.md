@@ -105,15 +105,15 @@ docker compose run --rm --entrypoint cat agent /app/docker-agent.yml
 Start the agent (opens the interactive dashboard):
 
 ```bash
-docker compose run --rm agent run
+docker compose run --rm
 ```
 
-Rebuild and reset (clears session state and the first-run marker):
+**When developing**: Rebuild and reset (clears session state and the first-run marker):
 
 ```bash
 docker compose down -v
-docker compose build agent
-docker compose run --rm agent run
+docker compose build --no-cache agent
+docker compose run --rm agent
 ```
 
 ## Design choices
