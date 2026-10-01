@@ -29,7 +29,7 @@ services:
     mem_limit: 4g # hard memory cap
     cpus: "4.0" # hard CPU cap
     read_only: true # root filesystem is immutable
-    tmpfs: [/tmp] # except a scratch dir, wiped on restart
+    tmpfs: [/tmp, /home/agent/.cache] # except a scratch dir, wiped on restart
     networks: [egress] # this network has NO direct route to the internet
     command: ["run", "/app/docker-agent.yml"] # Add --yolo?
     depends_on: [proxy]
