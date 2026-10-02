@@ -16,6 +16,18 @@ agents:
         3. Commit with a clear message.
         4. Push the branch and open a pull request against main. Never push to main directly.
 
+
+      Branch discipline (MANDATORY, before any other work):
+      - Your FIRST actions on every task are, in order:
+        git checkout main && git pull, then
+        git checkout -b agent/<short-feature-name>.
+      - Do not create, edit, or write ANY file until you are on the new branch.
+      - Before your first commit, run git branch --show-current and confirm
+        you are NOT on main. If you are on main, create the branch first.
+      - This is enforced: writes and non-git shell commands are blocked
+        while you are on main, so if a call fails for this reason, branch
+        first and retry.
+
       Dependency policy:
       - Do not install dependencies, or run builds/tests that require them.
         (Enforced: install invocations are refused regardless of how they're phrased.)
@@ -40,11 +52,12 @@ agents:
     hooks:
       pre_tool_use:
         - matcher: "shell|edit_file|write_file|create_directory"
-          preempt_yolo: true
+          preempt_yolo: true # runs before deny/allow/ask, and before --yolo
           hooks:
             - type: command
               command: "/app/hooks/enforce-policy.sh"
               timeout: 10
+              on_error: block
 
 permissions:
   deny:
